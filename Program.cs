@@ -6,24 +6,21 @@ using StationnementAPI.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuration de Kestrel
+//D√©sactiver HTTPS sur Render, Kestrel doit √©couter HTTP uniquement
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    serverOptions.ListenAnyIP(5001); // HTTP
-    serverOptions.ListenAnyIP(5000, listenOptions => // HTTPS
-    {
-        listenOptions.UseHttps("C:\\Windows\\System32\\nelson_certificat.pfx", "admin");
-    });
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080"; // Render assigne un port
+    serverOptions.ListenAnyIP(int.Parse(port));
 });
 
 // Add services to the container.
 
-// Configuration du DbContext avec options avancÈes
+// Configuration du DbContext avec options avanc√©es
 builder.Services.AddDbContext<StationnementDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection")),
-        mysqlOptions => mysqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null) // RÈsilience amÈliorÈe
+        mysqlOptions => mysqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null) // R√©silience am√©lior√©e
     )
 );
 
@@ -44,7 +41,7 @@ string baseUrl = builder.Configuration["BaseURL"];
 
 app.UsePathBase(new PathString(baseUrl));
 
-// Ajout du middleware de sÈcuritÈ API Key
+// Ajout du middleware de s√©curit√© API Key
 //app.UseMiddleware<ApiKeyMiddleware>();
 
 // Configure the HTTP request pipeline.
